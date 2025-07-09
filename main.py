@@ -40,16 +40,16 @@ class FileExplorer:
 			self.entries.clear()
 			self.paths.clear()
 
-			# Dacă putem selecta foldere, adăugăm o intrare “.”
+			# If we can select folders, add a "." entry
 			if self.select_file:
 				self._add_item('.', directory)
 
-			# Adăugăm părintele
+			# Add parent
 			if directory != "/":
 				parent = os.path.dirname(directory.rstrip('/'))
 				self._add_item('..', parent)
 
-			# Conținutul folderului
+			# Folder content
 			for name in sorted(os.listdir(directory)):
 				full_path = os.path.join(directory, name)
 				self._add_item(name, full_path)
@@ -119,7 +119,7 @@ class ShortcutManager:
 			self.applications_dir = os.path.join(xdg_data, 'applications')
 			os.makedirs(self.applications_dir, exist_ok=True)
 
-			# 2) desktop-ul XDG (fallback ~/Desktop)
+			# XDG desktop (fallback ~/Desktop)
 			self.desktop_dir = self._get_xdg_user_dir('DESKTOP') or os.path.join(self.home, 'Desktop')
 			os.makedirs(self.desktop_dir, exist_ok=True)
 			# Use XDG standard for templates storage
@@ -158,10 +158,29 @@ class ShortcutManager:
 
 	def _get_shortcuts(self):
 		items = []
-		for fname in sorted(os.listdir(self.desktop_dir)):
-			if fname.endswith('.desktop'):
-				path = os.path.join(self.desktop_dir, fname)
-				items.append((fname, path))
+		apps_dir = os.path.join(os.getenv('XDG_DATA_HOME', os.path.join(self.home, '.local', 'share')), 'applications', 'games')
+		os.makedirs(apps_dir, exist_ok=True)
+
+		for fname in sorted(os.listdir(apps_dir)):
+			if not fname.endswith('.desktop'):
+				continue
+			
+			path = os.path.join(apps_dir, fname)
+			try:
+				with open(path, "r", encoding="utf-8") as f:
+					lines = f.read().splitlines()
+			except Exception:
+				continue
+
+			if not any(l.lstrip().startswith("X-Shortcut-Manager=Shortcut Launcher") for l in lines):
+				continue
+
+			# extract display name
+			display_name = next((l.lstrip().split("=",1)[1] for l in lines if l.lstrip().startswith("Name=")), None)
+			if not display_name:
+				display_name = os.path.splitext(fname)[0]
+
+			items.append((display_name, path))
 		return items
 
 	def _get_templates(self):
@@ -186,7 +205,7 @@ class ShortcutManager:
 				m = re.match(rf'XDG_{name}_DIR="?(.+)"?', line)
 				if m:
 					val = m.group(1)
-					# expand variables și tilde
+					# expand variables and tilde
 					return os.path.expandvars(os.path.expanduser(val))
 		return None
 
@@ -794,9 +813,9 @@ class ShortcutManager:
 					except Exception as e:
 						print(f"Winetricks error: {e}")
 				elif vid == btn_dxvk:
-					dlg.finish()                             # închide dialogul curent
-					self._install_dxvk_gplasync(prefix_path) # rulează pe firul principal
-					return                                   # ieși din loop-ul dialogului
+					dlg.finish()                             
+					self._install_dxvk_gplasync(prefix_path) 
+					return                                   
 
 				elif vid == btn_script:
 					fe = FileExplorer(self.conn, select_file=True)
