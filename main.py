@@ -139,27 +139,27 @@ class ShortcutLauncher:
 		
 		# File menu
 		file_menu = tk.Menu(menubar, tearoff=0)
-		file_menu.add_command(label="Ieșire", command=self.root.quit)
-		menubar.add_cascade(label="Fișier", menu=file_menu)
+		file_menu.add_command(label="Exit", command=self.root.quit)
+		menubar.add_cascade(label="File", menu=file_menu)
 		
 		# View menu
 		view_menu = tk.Menu(menubar, tearoff=0)
 		theme_menu = tk.Menu(view_menu, tearoff=0)
 		theme_menu.add_radiobutton(label="Light", variable=self.current_theme, value="light", command=self.apply_theme)
 		theme_menu.add_radiobutton(label="Dark", variable=self.current_theme, value="dark", command=self.apply_theme)
-		view_menu.add_cascade(label="Tema", menu=theme_menu)
+		view_menu.add_cascade(label="Theme", menu=theme_menu)
 		menubar.add_cascade(label="View", menu=view_menu)
 		
 		# Main functions
-		menubar.add_command(label="Shortcut-uri", command=self.list_shortcuts)
-		menubar.add_command(label="Template-uri", command=self.list_templates)
-		menubar.add_command(label="Prefixuri", command=self.manage_prefixes)
+		menubar.add_command(label="Shortcuts", command=self.list_shortcuts)
+		menubar.add_command(label="Templates", command=self.list_templates)
+		menubar.add_command(label="Prefixes", command=self.manage_prefixes)
 		
 		# Help menu
 		help_menu = tk.Menu(menubar, tearoff=0)
-		help_menu.add_command(label="Despre", command=self.show_about)
-		help_menu.add_command(label="Verifică Actualizări", command=self.check_app_update)
-		menubar.add_cascade(label="Ajutor", menu=help_menu)
+		help_menu.add_command(label="About", command=self.show_about)
+		help_menu.add_command(label="Check for Updates", command=self.check_app_update)
+		menubar.add_cascade(label="Help", menu=help_menu)
 		
 		self.root.config(menu=menubar)
 
@@ -173,7 +173,7 @@ class ShortcutLauncher:
 		
 		# Header
 		ttk.Label(self.main_frame, 
-				 text=f"Launcher de Shortcut-uri și Template-uri {__version__}",
+				 text=f"Shortcut and Template Launcher {__version__}",
 				 style="Header.TLabel").pack(pady=20)
 		
 		# Main buttons
@@ -181,17 +181,17 @@ class ShortcutLauncher:
 		btn_frame.pack(pady=20)
 		
 		ttk.Button(btn_frame, 
-				  text="Shortcut-uri", 
+				  text="Shortcuts", 
 				  width=20,
 				  command=self.list_shortcuts).pack(pady=10, padx=10)
 		
 		ttk.Button(btn_frame, 
-				  text="Template-uri", 
+				  text="Templates", 
 				  width=20,
 				  command=self.list_templates).pack(pady=10, padx=10)
 		
 		ttk.Button(btn_frame,
-				  text="Prefixuri Wine",
+				  text="Wine Prefixes",
 				  width=20,
 				  command=self.manage_prefixes).pack(pady=10, padx=10)
 
@@ -207,8 +207,8 @@ class ShortcutLauncher:
 		
 		if not self.runners:
 			messagebox.showwarning(
-				"Atenționare",
-				"⚠️ Nu am găsit niciun runner instalat (wine, proton, hangover-wine etc)!"
+				"Warning",
+				"⚠️ No installed runners found (wine, proton, hangover-wine, etc.)!"
 			)
 
 	def clear_main_frame(self):
@@ -247,7 +247,7 @@ class ShortcutLauncher:
 		return os.path.exists(icon_path)
 		
 	def cleanup_icons(self):
-		"""Șterge iconițele nefolosite"""
+		"""Delete unused icons"""
 		icons_dir = os.path.join(self.SHORTCUTS_DIR, "icons")
 		if not os.path.exists(icons_dir):
 			return
@@ -255,7 +255,7 @@ class ShortcutLauncher:
 		used_icons = set()
 		desktop_dir = os.path.join(self.HOME, "Desktop") if os.path.exists(os.path.join(self.HOME, "Desktop")) else self.HOME
 		
-		# Colectează toate iconițele folosite
+		# Collect all used icons
 		for f in os.listdir(desktop_dir):
 			if f.endswith(".desktop"):
 				with open(os.path.join(desktop_dir, f), 'r') as file:
@@ -265,22 +265,22 @@ class ShortcutLauncher:
 							if os.path.isabs(icon_path):
 								used_icons.add(icon_path)
 		
-		# Șterge iconițele nefolosite
+		# Delete unused icons
 		for icon_file in os.listdir(icons_dir):
 			icon_path = os.path.join(icons_dir, icon_file)
 			if icon_path not in used_icons:
 				try:
 					os.remove(icon_path)
 				except Exception as e:
-					print(f"Eroare la ștergerea iconiței {icon_path}: {e}")
+					print(f"Error deleting icon {icon_path}: {e}")
 
 	def list_shortcuts(self):
 		self.clear_main_frame()
 
 		header = ttk.Frame(self.main_frame)
 		header.pack(fill=tk.X, pady=5)
-		ttk.Label(header, text="Shortcut-uri", style="Header.TLabel").pack(side=tk.LEFT)
-		ttk.Button(header, text="Adaugă", command=self.add_shortcut).pack(side=tk.RIGHT)
+		ttk.Label(header, text="Shortcuts", style="Header.TLabel").pack(side=tk.LEFT)
+		ttk.Button(header, text="Add", command=self.add_shortcut).pack(side=tk.RIGHT)
 
 		canvas = tk.Canvas(self.main_frame, bg=self.bg_color, highlightthickness=0)
 		scrollbar = ttk.Scrollbar(self.main_frame, orient="vertical", command=canvas.yview)
@@ -296,13 +296,14 @@ class ShortcutLauncher:
 		canvas.pack(side="left", fill="both", expand=True)
 		scrollbar.pack(side="right", fill="y")
 
-		desktop_dir = os.path.join(self.HOME, "Desktop") if os.path.exists(os.path.join(self.HOME, "Desktop")) else self.HOME
-		shortcuts = []  # va conține (display_name, filename)
+		apps_dir = Path(os.getenv('XDG_DATA_HOME', Path.home()/'.local'/'share')) / 'applications' / 'games'
+		apps_dir.mkdir(parents=True, exist_ok=True)
+		shortcuts = []  # will contain (display_name, filename)
 
-		for fname in os.listdir(desktop_dir):
+		for fname in os.listdir(apps_dir):
 			if not fname.endswith(".desktop"):
 				continue
-			path = os.path.join(desktop_dir, fname)
+			path = os.path.join(apps_dir, fname)
 			try:
 				with open(path, "r", encoding="utf-8") as f:
 					lines = f.read().splitlines()
@@ -311,19 +312,19 @@ class ShortcutLauncher:
 			if not any(l.lstrip().startswith("X-Shortcut-Manager=Shortcut Launcher") for l in lines):
 				continue
 
-			# extrag numele de afişat
+			# extract display name
 			display = next((l.lstrip().split("=",1)[1] for l in lines if l.lstrip().startswith("Name=")), None)
 			if not display:
 				display = os.path.splitext(fname)[0]
 
 			shortcuts.append((display, fname))
 
-		# afișare
+		# display
 		if not shortcuts:
-			ttk.Label(scrollable_frame, text="Nu sunt shortcut-uri disponibile.").pack(pady=10)
+			ttk.Label(scrollable_frame, text="No shortcuts available.").pack(pady=10)
 		else:
 			for display, fname in shortcuts:
-				# trimitem display-ul și filename-ul
+				# send display and filename
 				self._create_shortcut_item(scrollable_frame, display, fname)
 
 
@@ -360,14 +361,14 @@ class ShortcutLauncher:
 		# Afișăm display_name, nu filename
 		ttk.Label(icon_name_frame, text=display_name, font=("Arial", 12)).pack(side=tk.LEFT, anchor="w")
 
-		# Butoane
+		# Buttons
 		actions = ttk.Frame(frame)
 		actions.pack(side=tk.RIGHT, padx=10)
-		ttk.Button(actions, text="Rulează", width=8,
+		ttk.Button(actions, text="Run", width=8,
 				   command=lambda f=filename: self.run_shortcut(f)).pack(side=tk.LEFT, padx=2)
-		ttk.Button(actions, text="Editează", width=8,
+		ttk.Button(actions, text="Edit", width=8,
 				   command=lambda f=filename: self.edit_shortcut(f)).pack(side=tk.LEFT, padx=2)
-		ttk.Button(actions, text="Șterge", width=8,
+		ttk.Button(actions, text="Delete", width=8,
 				   command=lambda f=filename: self.delete_shortcut(f)).pack(side=tk.LEFT, padx=2)
 
 		
@@ -426,7 +427,7 @@ class ShortcutLauncher:
 
 			return os.path.exists(png_path)
 		except Exception as e:
-			print(f"Eroare la extragerea iconiței: {e}")
+			print(f"Error extracting icon: {e}")
 			return False
 			
 
@@ -447,136 +448,113 @@ class ShortcutLauncher:
 		)
 		desktop_path = os.path.join(desktop_dir, filename)
 
-		# 2) Recitim din fişier pentru exec_line, term_line şi display_name
 		with open(desktop_path, "r", encoding="utf-8") as f:
 			lines = f.read().splitlines()
 
-		exec_line = next((l for l in lines if l.lstrip().startswith("Exec=")), "Exec=")
-		term_line = next((l for l in lines if l.lstrip().startswith("Terminal=")), "Terminal=true")
+		# Safely extract values, providing defaults if they don't exist
+		config = {}
+		for line in lines:
+			if "=" in line:
+				key, value = line.split("=", 1)
+				config[key.strip()] = value.strip()
 
-		# Extragem display_name din Name=
-		display_name = next(
-			(l.lstrip().split("=", 1)[1] for l in lines if l.lstrip().startswith("Name=")),
-			os.path.splitext(filename)[0]
-		)
+		display_name = config.get("Name", os.path.splitext(filename)[0])
+		raw_exec_val = config.get("Exec", "")
+		icon_val = config.get("Icon", "application-x-executable")
+		term_val = config.get("Terminal", "true").lower() == "true"
 
-		# 3) Construim dialogul
 		edit_dialog = tk.Toplevel(self.root)
-		edit_dialog.title(f"Editează {display_name}")
-		edit_dialog.geometry("600x700")
+		edit_dialog.title(f"Edit {display_name}")
+		edit_dialog.geometry("600x400")
 
 		container = ttk.Frame(edit_dialog)
 		container.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
-		# 4) Creeăm câmpul pentru Name
 		ttk.Label(container, text="Name:").pack(anchor="w")
 		name_var = tk.StringVar(value=display_name)
-		names = [os.path.splitext(f)[0] for f in os.listdir(self.SHORTCUTS_DIR)]
-		name_combo = ttk.Combobox(container, textvariable=name_var, values=names, state="normal")
-		name_combo.pack(fill="x", pady=2)
+		name_entry = ttk.Entry(container, textvariable=name_var)
+		name_entry.pack(fill="x", pady=2)
 
-		# 5) Creeăm câmpul pentru Template (script pre-run)
-		ttk.Label(container, text="Template (script pre-run):").pack(anchor="w", pady=(10,0))
+		ttk.Label(container, text="Template (pre-run script):").pack(anchor="w", pady=(10, 0))
 		template_var = tk.StringVar()
 		templates = os.listdir(self.TEMPLATES_DIR)
-		choices = ["(fără template)"] + templates
+		choices = ["(no template)"] + templates
 		template_combo = ttk.Combobox(container, textvariable=template_var, values=choices, state="readonly")
 		template_combo.pack(fill="x", pady=2)
 
-		# extragem linia originală Exec=...
-		raw = exec_line.split("=", 1)[1] if "=" in exec_line else ""
-		match = re.match(r'bash\s+"([^"]+)"\s+"[^"]+"', raw)
+		match = re.match(r'bash\s+"([^"]+)"', raw_exec_val)
 		if match:
 			template_var.set(os.path.basename(match.group(1)))
 		else:
-			template_var.set("(fără template)")
 
-		# 6) RadioButton pentru Terminal
-		ttk.Label(container, text="Deschide în Terminal:").pack(anchor="w", pady=(10,0))
-		term_var = tk.BooleanVar(value=(term_line.split("=",1)[1].lower()=="true"))
+			template_var.set("(no template)")
+
+		ttk.Label(container, text="Open in Terminal:").pack(anchor="w", pady=(10, 0))
+		term_var = tk.BooleanVar(value=term_val)
 		term_frame = ttk.Frame(container)
 		term_frame.pack(anchor="w")
-		ttk.Radiobutton(term_frame, text="Da",  variable=term_var, value=True).pack(side="left")
-		ttk.Radiobutton(term_frame, text="Nu", variable=term_var, value=False).pack(side="left")
-
-		ttk.Separator(container).pack(fill="x", pady=10)
-
-		# Text area pentru vizualizare
-		text_area = tk.Text(container, wrap=tk.NONE, height=15,
-							bg=self.bg_color, fg=self.fg_color,
-							insertbackground=self.fg_color)
-		text_area.pack(fill=tk.BOTH, expand=True)
-		text_area.insert("1.0", "\n".join(lines))
+		ttk.Radiobutton(term_frame, text="Yes", variable=term_var, value=True).pack(side="left")
+		ttk.Radiobutton(term_frame, text="No", variable=term_var, value=False).pack(side="left")
 
 		def save_changes():
 			new_name = name_var.get().strip() or display_name
-			raw_exec = exec_line[len("Exec="):].strip()
 			tpl = template_var.get().strip()
-			if tpl and tpl != "(fără template)":
-				tpl_path = os.path.join(self.TEMPLATES_DIR, tpl)
-				new_exec = f'bash "{tpl_path}" "{desktop_path}"'
+
+			# Correctly extract the actual executable path
+			quoted_parts = re.findall(r'"([^"]+)"', raw_exec_val)
+			if quoted_parts:
+				# The last quoted part is the executable
+				actual_executable_path = quoted_parts[-1]
 			else:
-				new_exec = raw_exec
+				# Fallback for non-quoted paths
+				actual_executable_path = raw_exec_val.split()[-1]
+
+			if tpl and tpl != "(no template)":
+				tpl_path = os.path.join(self.TEMPLATES_DIR, tpl)
+				new_exec = f'bash "{tpl_path}" "{actual_executable_path}"'
+			else:
+				# If no template, just use the executable path
+				new_exec = f'"{actual_executable_path}"'
+
 			new_term = 'true' if term_var.get() else 'false'
 
-			updated = []
-			saw_name = saw_exec = saw_term = False
+			# Rebuild the .desktop file content
+			config["Name"] = new_name
+			config["Exec"] = new_exec
+			config["Terminal"] = new_term
+			config["Icon"] = icon_val # Preserve original icon
 
-			for line in lines:
-				stripped = line.lstrip()
-				indent = line[:len(line) - len(stripped)]
-				if stripped.startswith("Name="):
-					updated.append(f"{indent}Name={new_name}")
-					saw_name = True
-				elif stripped.startswith("Exec="):
-					updated.append(f"{indent}Exec={new_exec}")
-					saw_exec = True
-				elif stripped.startswith("Terminal="):
-					updated.append(f"{indent}Terminal={new_term}")
-					saw_term = True
-				else:
-					updated.append(line)
-
-			# Inserăm orice linie lipsă sub header
-			if not (saw_name and saw_exec and saw_term):
-				idx = 1 if updated and updated[0].strip()=="[Desktop Entry]" else 0
-				extras = []
-				if not saw_name:  extras.append(f"Name={new_name}")
-				if not saw_exec:  extras.append(f"Exec={new_exec}")
-				if not saw_term:  extras.append(f"Terminal={new_term}")
-				for i, extra in enumerate(extras):
-					updated.insert(idx+i, extra)
-
+			new_content = "[Desktop Entry]\n" + "\n".join([f"{k}={v}" for k, v in config.items() if k != "Type"])
+			
 			with open(desktop_path, "w", encoding="utf-8") as f:
-				f.write("\n".join(updated))
+				f.write(new_content + "\n")
 
-			messagebox.showinfo("Succes", "Shortcut actualizat!")
+			messagebox.showinfo("Success", "Shortcut updated!")
 			edit_dialog.destroy()
 			self.list_shortcuts()
 
-		# Butoane Salvează/Anulează
 		btn_frame = ttk.Frame(container)
 		btn_frame.pack(pady=10)
-		ttk.Button(btn_frame, text="Salvează", command=save_changes).pack(side="left", padx=5)
-		ttk.Button(btn_frame, text="Anulează", command=edit_dialog.destroy).pack(side="left")
+		ttk.Button(btn_frame, text="Save", command=save_changes).pack(side="left", padx=5)
+		ttk.Button(btn_frame, text="Cancel", command=edit_dialog.destroy).pack(side="left")
 
 	def delete_shortcut(self, filename):
-		# — 1) .desktop din Applications —
+		# — 1) .desktop from Applications —
 		xdg = Path(os.getenv('XDG_DATA_HOME', Path.home()/'.local'/'share'))
 		apps_dir = xdg/'applications'
 		desktop_file = apps_dir/filename
 		if desktop_file.exists():
 			desktop_file.unlink()
 
-		# — 2) symlink de pe Desktop —
+		# — 2) symlink from Desktop —
 		desk = Path.home()/"Desktop"
 		link = desk/filename
 		if link.is_symlink() or link.exists():
 			link.unlink()
 
-		# — 3) icon din tema globală —
-		# extrag numele iconiței din desktop_file înainte de ștergere (dacă mai ai obiectul)
-		# presupunem că numele iconii = filename fără .desktop
+		# — 3) icon from global theme —
+		# extract icon name from desktop_file before deletion (if you still have the object)
+		# assume icon name = filename without .desktop
 		icon_base = Path(filename).stem
 		icons_dir = xdg/'icons'/'hicolor'/'48x48'/'apps'
 		for ext in ('.png','.svg','.ico','.xpm'):
@@ -590,13 +568,13 @@ class ShortcutLauncher:
 		# — selectare name și path —
 		if preselected_path:
 			default_name = Path(preselected_path).stem
-			name = simpledialog.askstring("Nume", "Nume shortcut:", initialvalue=default_name)
+			name = simpledialog.askstring("Name", "Shortcut name:", initialvalue=default_name)
 			path = preselected_path
 		else:
-			name = simpledialog.askstring("Nume", "Nume shortcut:")
-			path = filedialog.askopenfilename(title="Alege fișier/script")
+			name = simpledialog.askstring("Name", "Shortcut name:")
+			path = filedialog.askopenfilename(title="Choose file/script")
 		if not name or " " in name or not path:
-			messagebox.showwarning("Atenționare", "Numele nu poate conține spații și trebuie să selectezi un fișier!")
+			messagebox.showwarning("Warning", "Name cannot contain spaces and you must select a file!")
 			return
 
 		# — construiește exec_cmd fără template (adaptabil) —
@@ -604,13 +582,13 @@ class ShortcutLauncher:
 
 		# — dialog pentru alegerea template-ului —
 		dialog = tk.Toplevel(self.root)
-		dialog.title(f"Template pentru {name}")
+		dialog.title(f"Template for {name}")
 		dialog.geometry("300x150")
 
 		frame = ttk.Frame(dialog, padding=10)
 		frame.pack(fill=tk.BOTH, expand=True)
 
-		ttk.Label(frame, text="Alege template (sau fără):").pack(anchor="w")
+		ttk.Label(frame, text="Choose template (or none):").pack(anchor="w")
 		template_var = tk.StringVar()
 		templates = ["(fără template)"] + os.listdir(self.TEMPLATES_DIR)
 		cb = ttk.Combobox(frame, textvariable=template_var, values=templates, state="readonly")
@@ -679,7 +657,7 @@ class ShortcutLauncher:
 			except Exception:
 				shutil.copy2(desktop_file, desktop_link)
 
-			messagebox.showinfo("Succes", f"Shortcut creat și pe Desktop:\n{desktop_link}")
+			messagebox.showinfo("Success", f"Shortcut created and on Desktop:\n{desktop_link}")
 			dialog.destroy()
 			self.list_shortcuts()
 
@@ -687,7 +665,7 @@ class ShortcutLauncher:
 		btns = ttk.Frame(frame)
 		btns.pack(fill="x", pady=10)
 		ttk.Button(btns, text="OK",      command=on_ok).pack(side="right", padx=5)
-		ttk.Button(btns, text="Anulează", command=dialog.destroy).pack(side="right")
+		ttk.Button(btns, text="Cancel", command=dialog.destroy).pack(side="right")
 
 	
 	def list_templates(self):
@@ -695,9 +673,9 @@ class ShortcutLauncher:
 
 		header = ttk.Frame(self.main_frame)
 		header.pack(fill=tk.X, pady=5)
-		ttk.Label(header, text="Template-uri", style="Header.TLabel").pack(side=tk.LEFT)
-		ttk.Button(header, text="Adaugă", command=self.add_template).pack(side=tk.RIGHT)
-		ttk.Button(header, text="Descarcă Template-uri", command=self.show_available_templates).pack(side=tk.RIGHT, padx=2)
+		ttk.Label(header, text="Templates", style="Header.TLabel").pack(side=tk.LEFT)
+		ttk.Button(header, text="Add", command=self.add_template).pack(side=tk.RIGHT)
+		ttk.Button(header, text="Download Templates", command=self.show_available_templates).pack(side=tk.RIGHT, padx=2)
 
 		canvas = tk.Canvas(self.main_frame, bg=self.bg_color, highlightthickness=0)
 		scrollbar = ttk.Scrollbar(self.main_frame, orient="vertical", command=canvas.yview)
@@ -713,12 +691,12 @@ class ShortcutLauncher:
 
 		templates = os.listdir(self.TEMPLATES_DIR)
 		if not templates:
-			ttk.Label(scrollable_frame, text="Nu sunt template-uri disponibile.").pack(pady=10)
+			ttk.Label(scrollable_frame, text="No templates available.").pack(pady=10)
 		else:
 			for template in templates:
 				self._create_template_item(scrollable_frame, template)
 
-		back_btn = ttk.Button(self.main_frame, text="Înapoi", command=self.go_back)
+		back_btn = ttk.Button(self.main_frame, text="Back", command=self.go_back)
 		back_btn.pack(pady=10)
 
 	def _create_template_item(self, parent, name):
@@ -733,9 +711,9 @@ class ShortcutLauncher:
 		actions = ttk.Frame(frame)
 		actions.pack(side=tk.RIGHT, padx=10)
 
-		ttk.Button(actions, text="Editează", width=8,
+		ttk.Button(actions, text="Edit", width=8,
 				  command=lambda: self.edit_template(name)).pack(side=tk.LEFT, padx=2)
-		ttk.Button(actions, text="Șterge", width=8,
+		ttk.Button(actions, text="Delete", width=8,
 				  command=lambda: self.delete_template(name)).pack(side=tk.LEFT, padx=2)
 
 	def edit_template(self, name):
@@ -744,7 +722,7 @@ class ShortcutLauncher:
 			with open(path, "r") as f:
 				content = f.read()
 			edit_dialog = tk.Toplevel(self.root)
-			edit_dialog.title(f"Editează {name}")
+			edit_dialog.title(f"Edit {name}")
 			edit_dialog.geometry("800x600")
 
 			text_area = tk.Text(edit_dialog, wrap=tk.NONE, undo=True)
@@ -755,32 +733,32 @@ class ShortcutLauncher:
 				new_content = text_area.get(1.0, tk.END)
 				with open(path, "w") as f:
 					f.write(new_content.rstrip('\n'))
-				messagebox.showinfo("Succes", "Template salvat!")
+				messagebox.showinfo("Success", "Template saved!")
 				edit_dialog.destroy()
 
 			button_frame = ttk.Frame(edit_dialog)
 			button_frame.pack(pady=5)
-			ttk.Button(button_frame, text="Salvează", command=save_changes).pack(side=tk.LEFT, padx=5)
-			ttk.Button(button_frame, text="Anulează", command=edit_dialog.destroy).pack(side=tk.LEFT)
+			ttk.Button(button_frame, text="Save", command=save_changes).pack(side=tk.LEFT, padx=5)
+			ttk.Button(button_frame, text="Cancel", command=edit_dialog.destroy).pack(side=tk.LEFT)
 
 		except Exception as e:
-			messagebox.showerror("Eroare", f"Nu s-a putut citi template-ul:\n{str(e)}")
+			messagebox.showerror("Error", f"Could not read template:\n{str(e)}")
 
 	def delete_template(self, name):
 		path = os.path.join(self.TEMPLATES_DIR, name)
 		try:
 			os.remove(path)
-			messagebox.showinfo("Ștergere", f"Template șters: {name}")
+			messagebox.showinfo("Delete", f"Template deleted: {name}")
 			self.list_templates()
 		except Exception as e:
-			messagebox.showerror("Eroare", f"Nu s-a putut șterge:\n{str(e)}")
+			messagebox.showerror("Error", f"Could not delete:\n{str(e)}")
 
 	def add_template(self):
-		name = simpledialog.askstring("Nume Template", "Introdu numele noului template:")
+		name = simpledialog.askstring("Template Name", "Enter new template name:")
 		if not name:
 			return
 
-		# Încarcă acțiuni personalizate persistente
+		# Load persistent custom actions
 		self.custom_file = os.path.expanduser("~/.template_postrun_custom")
 		if os.path.exists(self.custom_file):
 			with open(self.custom_file) as f:
@@ -788,9 +766,9 @@ class ShortcutLauncher:
 		else:
 			self.persisted_custom_actions = []
 
-		# Creare dialog scrollabil
+		# Create scrollable dialog
 		dialog = tk.Toplevel(self.root)
-		dialog.title("Creare Template")
+		dialog.title("Create Template")
 		dialog.geometry("800x600")
 		dialog.rowconfigure(0, weight=1)
 		dialog.rowconfigure(1, weight=0)
@@ -803,49 +781,49 @@ class ShortcutLauncher:
 		canvas.grid(row=0, column=0, sticky="nsew")
 		vsb.grid(row=0, column=1, sticky="ns")
 
-		# Frame scrollabil
+		# Scrollable frame
 		scrollable = ttk.Frame(canvas)
 		scrollable.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
 		canvas.create_window((0,0), window=scrollable, anchor="nw")
 
-		# Titlu
-		ttk.Label(scrollable, text="Alege opțiunile și apoi salvează").pack(pady=10)
+		# Title
+		tk.Label(scrollable, text="Choose options and then save").pack(pady=10)
 
 		# Runner
 		runner_var = tk.StringVar()
-		ttk.Label(scrollable, text="Runner:").pack(anchor="w", padx=10)
+		tk.Label(scrollable, text="Runner:").pack(anchor="w", padx=10)
 		runner_combo = ttk.Combobox(scrollable, textvariable=runner_var, values=self._get_runners())
 		runner_combo.pack(fill="x", padx=10, pady=5)
 		runner_combo.current(0)
 
-		# Rulare paralelă
+		# Parallel execution
 		parallel_var = tk.BooleanVar()
-		ttk.Checkbutton(scrollable, text="Rulare în paralel (&)", variable=parallel_var).pack(anchor="w", padx=10)
+		tk.Checkbutton(scrollable, text="Run in parallel (&)", variable=parallel_var).pack(anchor="w", padx=10)
 
 		# EMU
 		emu_var = tk.StringVar()
-		ttk.Label(scrollable, text="EMU Settings:").pack(anchor="w", padx=10)
+		tk.Label(scrollable, text="EMU Settings:").pack(anchor="w", padx=10)
 		emu_combo = ttk.Combobox(scrollable, textvariable=emu_var, values=["libwow64fex.dll"])
 		emu_combo.pack(fill="x", padx=10, pady=5)
 		emu_combo.current(0)
 
 		# WINEPREFIX
 		wine_var = tk.StringVar()
-		ttk.Label(scrollable, text="WINEPREFIX:").pack(anchor="w", padx=10)
+		tk.Label(scrollable, text="WINEPREFIX:").pack(anchor="w", padx=10)
 		wine_combo = ttk.Combobox(scrollable, textvariable=wine_var, values=["~/.wine", "~/.proton"])
 		wine_combo.pack(fill="x", padx=10, pady=5)
 		wine_combo.current(0)
 
 		# DXVK HUD
 		dxvk_var = tk.StringVar()
-		ttk.Label(scrollable, text="DXVK HUD:").pack(anchor="w", padx=10)
+		tk.Label(scrollable, text="DXVK HUD:").pack(anchor="w", padx=10)
 		dxvk_combo = ttk.Combobox(scrollable, textvariable=dxvk_var, values=["none", "1", "full"])
 		dxvk_combo.pack(fill="x", padx=10, pady=5)
 		dxvk_combo.current(0)
 
 		# Vulkan ICD
 		vk_var = tk.StringVar()
-		ttk.Label(scrollable, text="Vulkan ICD:").pack(anchor="w", padx=10)
+		tk.Label(scrollable, text="Vulkan ICD:").pack(anchor="w", padx=10)
 		vk_combo = ttk.Combobox(scrollable, textvariable=vk_var, values=[
 			"$PREFIX/share/vulkan/icd.d/wrapper_icd.aarch64.json",
 			"$PREFIX/share/vulkan/icd.d/freedreno_icd.aarch64.json"
@@ -854,7 +832,7 @@ class ShortcutLauncher:
 		vk_combo.current(0)
 
 		# Post-exec
-		ttk.Label(scrollable, text="Acțiuni după execuție:").pack(anchor="w", padx=10)
+		tk.Label(scrollable, text="Post-execution actions:").pack(anchor="w", padx=10)
 		after_vars = []
 		after_frame = ttk.Frame(scrollable)
 		after_frame.pack(fill="x", padx=10, pady=5)
@@ -865,10 +843,10 @@ class ShortcutLauncher:
 			after_vars.clear()
 
 			available = [
-				"echo 'Execuția s-a încheiat'",
-				"notify-send 'Template finalizat'",
+				"echo 'Execution finished'",
+				"notify-send 'Template finished'",
 				"rm -f *.tmp",
-				"sync; echo 'Datele au fost sincronizate'",
+				"sync; echo 'Data synchronized'",
 				"poweroff",
 				"pkill -9 -f services.exe"
 			] + self.persisted_custom_actions
@@ -878,7 +856,7 @@ class ShortcutLauncher:
 				after_vars.append((opt, var))
 				row = ttk.Frame(after_frame)
 				row.pack(fill="x", pady=2)
-				ttk.Checkbutton(row, text=opt, variable=var).pack(side="left", fill="x", expand=True)
+				tk.Checkbutton(row, text=opt, variable=var).pack(side="left", fill="x", expand=True)
 				if opt in self.persisted_custom_actions:
 					ttk.Button(row, text="✖", width=2, command=lambda o=opt: delete_after(o)).pack(side="right")
 
@@ -890,7 +868,7 @@ class ShortcutLauncher:
 			refresh_after_list()
 
 		def add_custom_post_exec():
-			custom = simpledialog.askstring("Adaugă acțiune", "Introdu o acțiune personalizată după execuție:")
+			custom = simpledialog.askstring("Add action", "Enter a custom post-execution action:")
 			if custom and custom not in self.persisted_custom_actions:
 				self.persisted_custom_actions.append(custom)
 				with open(self.custom_file, "a") as f:
@@ -898,11 +876,11 @@ class ShortcutLauncher:
 			refresh_after_list()
 
 		refresh_after_list()
-		ttk.Button(scrollable, text="Adaugă acțiune personalizată ⨁", command=add_custom_post_exec)\
+		ttk.Button(scrollable, text="Add custom action ⨁", command=add_custom_post_exec)\
 			.pack(anchor="w", padx=10, pady=5)
 
-		# Zona de previzualizare
-		ttk.Label(scrollable, text="Previzualizare Script:").pack(anchor="w", padx=10, pady=(10,0))
+		# Preview area
+		tk.Label(scrollable, text="Script Preview:").pack(anchor="w", padx=10, pady=(10,0))
 		self.code_preview = tk.Text(scrollable, height=15, wrap="none",
 									bg=self.bg_color, fg=self.fg_color,
 									insertbackground=self.fg_color)
@@ -918,14 +896,14 @@ class ShortcutLauncher:
 			after_lines = [opt for opt, var in after_vars if var.get()]
 
 			lines = [
-				"#!/bin/sh", "", "# === Exporturi ===",
+				"#!/bin/sh", "", "# === Exports ===",
 				f"\texport WINEPREFIX={wine}",
 				(f"\texport DXVK_HUD={dxvk}" if dxvk!="none" else ""),
 				(f"\texport VK_ICD_FILENAMES={vk}" if vk else ""),
 				(f"\texport HODLL={emu}" if emu else ""),
-				"", "# === Directorul scriptului ===",
-				'\tcd "$(dirname \"$1\")"', "", "# === Rulare principală ===",
-				f"\t{runner} \"$1\"{parallel}", "", "# === După execuție ===",
+				"", "# === Script Directory ===",
+				'\tcd "$(dirname \"$1\")"', "", "# === Main Run ===",
+				f"\t{runner} \"$1\"{parallel}", "", "# === Post-execution ===",
 				*[f"\t{cmd}" for cmd in after_lines]
 			]
 
@@ -947,19 +925,19 @@ class ShortcutLauncher:
 			lines = [
 				"#!/bin/sh",
 				"",
-				"# === Exporturi ===",
+				"# === Exports ===",
 				f"\texport WINEPREFIX={wine}",
 				f"\texport DXVK_HUD={dxvk}" if dxvk != "none" else "",
 				f"\texport VK_ICD_FILENAMES={vk}" if vk else "",
 				f"\texport HODLL={emu}" if emu else "",
 				"",
-				"# === Directorul scriptului ===",
+				"# === Script Directory ===",
 				'\tcd "$(dirname \"$1\")"',
 				"",
-				"# === Rulare principală ===",
+				"# === Main Run ===",
 				f"\t{runner} \"$1\"{parallel}",
 				"",
-				"# === După execuție ===",
+				"# === Post-execution ===",
 				*[f"\t{text}" for text in after_lines + custom_lines]
 			]
 
@@ -970,16 +948,16 @@ class ShortcutLauncher:
 				with open(template_path, "w") as f:
 					f.write(content)
 				os.chmod(template_path, 0o755)
-				messagebox.showinfo("Succes", f"Template salvat: {template_path}")
+				messagebox.showinfo("Success", f"Template saved: {template_path}")
 				dialog.destroy()
 			except Exception as e:
-				messagebox.showerror("Eroare", f"Nu s-a putut salva template-ul:\n{str(e)}")
+				messagebox.showerror("Error", f"Could not save template:\n{str(e)}")
 
-		# Bara de butoane fixe
+		# Fixed button bar
 		btn_frame = ttk.Frame(dialog)
 		btn_frame.grid(row=1, column=0, columnspan=2, sticky="ew", pady=5)
-		ttk.Button(btn_frame, text="Salvează Template", command=save_template).pack(side="left", padx=5)
-		ttk.Button(btn_frame, text="Anulează", command=dialog.destroy).pack(side="left")
+		ttk.Button(btn_frame, text="Save Template", command=save_template).pack(side="left", padx=5)
+		ttk.Button(btn_frame, text="Cancel", command=dialog.destroy).pack(side="left")
 
 		# Legări preview
 		runner_combo.bind("<<ComboboxSelected>>", update_preview)
@@ -999,8 +977,8 @@ class ShortcutLauncher:
 		self.clear_main_frame()
 		header = ttk.Frame(self.main_frame)
 		header.pack(fill=tk.X, pady=5)
-		ttk.Label(header, text="Gestionare Prefixuri Wine", style="Header.TLabel").pack(side=tk.LEFT)
-		ttk.Button(header, text="Creează Prefix Nou", command=self.create_prefix).pack(side=tk.RIGHT)
+		ttk.Label(header, text="Manage Wine Prefixes", style="Header.TLabel").pack(side=tk.LEFT)
+		ttk.Button(header, text="Create New Prefix", command=self.create_prefix).pack(side=tk.RIGHT)
 
 		canvas = tk.Canvas(self.main_frame, bg=self.bg_color, highlightthickness=0)
 		scrollbar = ttk.Scrollbar(self.main_frame, orient="vertical", command=canvas.yview)
@@ -1014,50 +992,50 @@ class ShortcutLauncher:
 
 		prefixes = self.load_prefixes()
 		if not prefixes:
-			ttk.Label(scrollable_frame, text="Nu sunt prefixuri disponibile.").pack(pady=10)
+			ttk.Label(scrollable_frame, text="No prefixes available.").pack(pady=10)
 		else:
 			for p in prefixes:
 				self._create_prefix_item(scrollable_frame, p)
 
-		ttk.Button(self.main_frame, text="Înapoi", command=self.go_back).pack(pady=10)
+		ttk.Button(self.main_frame, text="Back", command=self.go_back).pack(pady=10)
 
 	def create_prefix(self):
 		runners = self._get_runners()
 		if not runners:
-			messagebox.showerror("Eroare", "Nu există niciun runner detectat!")
+			messagebox.showerror("Error", "No runners detected!")
 			return
 
 		dialog = tk.Toplevel(self.root)
-		dialog.title("Creare Prefix Nou")
+		dialog.title("Create New Prefix")
 		dialog.geometry("420x240")
 		
 		runners = self._get_runners()
 		template_files = [f"[TEMPLATE] {f}" for f in os.listdir(self.TEMPLATES_DIR) if os.path.isfile(os.path.join(self.TEMPLATES_DIR, f))]
 		combined_options = runners + template_files
 
-		ttk.Label(dialog, text="Runner sau Template:", style="Section.TLabel").pack(pady=8)
+		ttk.Label(dialog, text="Runner or Template:", style="Section.TLabel").pack(pady=8)
 		runner_var = tk.StringVar(value=combined_options[0])
 		runner_combo = ttk.Combobox(dialog, textvariable=runner_var, values=combined_options, state="readonly")
 		runner_combo.pack(pady=4)
 		runner_combo.current(0)
 
-		ttk.Label(dialog, text="Arhitectură:", style="Section.TLabel").pack(pady=8)
+		ttk.Label(dialog, text="Architecture:", style="Section.TLabel").pack(pady=8)
 		arch_var = tk.StringVar(value="win64")
 		arch_entry = ttk.Combobox(dialog, textvariable=arch_var, values=["win32", "win64"], state="readonly")
 		arch_entry.pack(pady=4)
 		arch_entry.current(1)
 
-		# --- Checkpoint pentru import registry ---
+		# --- Checkpoint for registry import ---
 		reg_path = os.path.join(self.HOME, "registry")
 		do_import = tk.BooleanVar(value=False)
 		if os.path.isfile(reg_path):
-			ttk.Checkbutton(dialog, text=f"Importă {reg_path} după inițializare", variable=do_import).pack(pady=10)
+			ttk.Checkbutton(dialog, text=f"Import {reg_path} after initialization", variable=do_import).pack(pady=10)
 		else:
-			reg_path = None  # nu există, nu afișezi nimic
+			reg_path = None  # does not exist, do not display anything
 
 		def create():
 			dialog.destroy()
-			new_prefix = filedialog.askdirectory(title="Alege folder pentru noul prefix")
+			new_prefix = filedialog.askdirectory(title="Choose folder for new prefix")
 			if not new_prefix:
 				return
 			selected = runner_var.get()
@@ -1083,19 +1061,19 @@ class ShortcutLauncher:
 
 				subprocess.run(cmd, env=env, check=True)
 
-				# Salvează prefixul
+				# Save prefix
 				prefixes = self.load_prefixes()
 				if new_prefix not in prefixes:
 					prefixes.append(new_prefix)
 					self.save_prefixes(prefixes)
 
-				messagebox.showinfo("Succes", f"Prefix creat cu succes!\nComandă:\n{' '.join(cmd)}")
+				messagebox.showinfo("Success", f"Prefix created successfully!\nCommand:\n{' '.join(cmd)}")
 				self.manage_prefixes()
 			except Exception as e:
-				messagebox.showerror("Eroare", f"Eroare la creare prefix:\n{str(e)}")
+				messagebox.showerror("Error", f"Error creating prefix:\n{str(e)}")
 
-		ttk.Button(dialog, text="Creează Prefix", command=create).pack(pady=15)
-		ttk.Button(dialog, text="Anulează", command=dialog.destroy).pack()
+		ttk.Button(dialog, text="Create Prefix", command=create).pack(pady=15)
+		ttk.Button(dialog, text="Cancel", command=dialog.destroy).pack()
 
 			
 	def _create_prefix_item(self, parent, path):
@@ -1106,16 +1084,16 @@ class ShortcutLauncher:
 
 		actions = ttk.Frame(frame)
 		actions.pack(side=tk.RIGHT, padx=5)
-		ttk.Button(actions, text="Editează", command=lambda: self.edit_prefix(path)).pack(side=tk.LEFT)
-		ttk.Button(actions, text="Șterge", command=lambda: self.delete_prefix(path)).pack(side=tk.LEFT, padx=3)
+		ttk.Button(actions, text="Edit", command=lambda: self.edit_prefix(path)).pack(side=tk.LEFT)
+		ttk.Button(actions, text="Delete", command=lambda: self.delete_prefix(path)).pack(side=tk.LEFT, padx=3)
 
 	def edit_prefix(self, prefix_path):
 		edit_dialog = tk.Toplevel(self.root)
-		edit_dialog.title("Editare Prefix")
+		edit_dialog.title("Edit Prefix")
 		edit_dialog.geometry("420x440")
 		ttk.Label(edit_dialog, text=f"Prefix: {prefix_path}", style="Section.TLabel").pack(pady=8)
 
-		# Runner selectabil
+		# Selectable runner
 		runner_var = tk.StringVar(value="wine")
 		ttk.Label(edit_dialog, text="Runner:").pack()
 		runner_combo = ttk.Combobox(edit_dialog, textvariable=runner_var, values=self._get_runners())
@@ -1123,25 +1101,25 @@ class ShortcutLauncher:
 		if runner_combo["values"]:
 			runner_combo.current(0)
 
-		# Winetricks rapid
+		# Quick Winetricks
 		runner = runner_var.get() 
 		def run_tricks():
 			subprocess.run(["winetricks"], env={"WINEPREFIX": prefix_path, "WINE": runner,**os.environ}, check=True)
 
-		ttk.Button(edit_dialog, text="Rulează Winetricks", command=run_tricks).pack(pady=8)
-		ttk.Button(edit_dialog, text="Instalează DXVK GPLAsync", command=lambda: self.install_dxvk_gplasync(prefix_path)).pack(pady=8)
+		ttk.Button(edit_dialog, text="Run Winetricks", command=run_tricks).pack(pady=8)
+		ttk.Button(edit_dialog, text="Install DXVK GPLAsync", command=lambda: self.install_dxvk_gplasync(prefix_path)).pack(pady=8)
 
-		# Rulează script custom
+		# Run custom script
 		def run_script_custom():
-			script = filedialog.askopenfilename(title="Alege script de rulat")
+			script = filedialog.askopenfilename(title="Choose script to run")
 			if script:
 				try:
 					subprocess.run([runner_var.get(), script], env={"WINEPREFIX": prefix_path, **os.environ})
-					messagebox.showinfo("Script", "Script rulat cu succes!")
+					messagebox.showinfo("Script", "Script run successfully!")
 				except Exception as e:
-					messagebox.showerror("Eroare", f"Eroare la script:\n{str(e)}")
+					messagebox.showerror("Error", f"Script error:\n{str(e)}")
 
-		ttk.Button(edit_dialog, text="Rulează Script Custom", command=run_script_custom).pack(pady=8)
+		ttk.Button(edit_dialog, text="Run Custom Script", command=run_script_custom).pack(pady=8)
 		# === Dropdown import .reg ===
 		reg_dir = os.path.join(self.HOME, "registry")
 		reg_files = []
@@ -1152,26 +1130,26 @@ class ShortcutLauncher:
 		selected_reg = tk.StringVar(value=reg_file_names[0] if reg_file_names else "")
 
 		if reg_file_names:
-			ttk.Label(edit_dialog, text="Alege fișier .reg pentru import:", style="Section.TLabel").pack(pady=8)
+			ttk.Label(edit_dialog, text="Choose .reg file to import:", style="Section.TLabel").pack(pady=8)
 			reg_combo = ttk.Combobox(edit_dialog, textvariable=selected_reg, values=reg_file_names, state="readonly")
 			reg_combo.pack(pady=4)
 			
 			def import_registry():
 				if not selected_reg.get():
-					messagebox.showerror("Eroare", "Nu ai selectat niciun fișier .reg!")
+					messagebox.showerror("Error", "No .reg file selected!")
 					return
 				reg_path = os.path.join(reg_dir, selected_reg.get())
 				try:
 					subprocess.run([runner_var.get(), "regedit", reg_path], env={"WINEPREFIX": prefix_path, **os.environ}, check=True)
-					messagebox.showinfo("Succes", f"Registry importat: {selected_reg.get()}")
+					messagebox.showinfo("Success", f"Registry imported: {selected_reg.get()}")
 				except Exception as e:
-					messagebox.showerror("Eroare", f"Eroare la import registry:\n{str(e)}")
+					messagebox.showerror("Error", f"Error importing registry:\n{str(e)}")
 			
-			ttk.Button(edit_dialog, text="Importă Registry", command=import_registry).pack(pady=8)
+			ttk.Button(edit_dialog, text="Import Registry", command=import_registry).pack(pady=8)
 		else:
-			ttk.Label(edit_dialog, text="Nu există fișiere .reg în ~/registry").pack(pady=8)
+			ttk.Label(edit_dialog, text="No .reg files in ~/registry").pack(pady=8)
 
-		ttk.Button(edit_dialog, text="Închide", command=edit_dialog.destroy).pack(pady=12)
+		ttk.Button(edit_dialog, text="Close", command=edit_dialog.destroy).pack(pady=12)
 
 
 	def load_prefixes(self):
@@ -1183,18 +1161,18 @@ class ShortcutLauncher:
 			json.dump(prefixes, f)
 			
 	def install_dxvk_gplasync(self, prefix_path):
-		project_id = "43488626"  # ID pentru Ph42oN/dxvk-gplasync
+		project_id = "43488626"  # ID for Ph42oN/dxvk-gplasync
 		api_url = f"https://gitlab.com/api/v4/projects/{project_id}/releases"
-		download_path = None  # inițializezi aici
+		download_path = None  # initialize here
 
 		try:
 			resp = requests.get(api_url)
 			resp.raise_for_status()
 			releases = resp.json()
 			if not releases:
-				messagebox.showerror("Eroare", "Nu am găsit releases pe GitLab!")
+				messagebox.showerror("Error", "No releases found on GitLab!")
 				return
-			# Fă lista de opțiuni
+			# Make list of options
 			options = []
 			assets = {}
 			for rel in releases:
@@ -1204,14 +1182,14 @@ class ShortcutLauncher:
 						options.append(f"{title} ({asset['name']})")
 						assets[f"{title} ({asset['name']})"] = asset['url']
 			if not options:
-				messagebox.showerror("Eroare", "Nu am găsit arhive .tar.gz în releases!")
+				messagebox.showerror("Error", "No .tar.gz archives found in releases!")
 				return
 
-			# Alegi versiunea
+			# Choose version
 			vers_var = tk.StringVar(value=options[0])
 			vers_dialog = tk.Toplevel(self.root)
-			vers_dialog.title("Alege versiunea DXVK GPLAsync")
-			ttk.Label(vers_dialog, text="Alege versiunea DXVK GPLAsync:").pack(pady=10)
+			vers_dialog.title("Choose DXVK GPLAsync version")
+			ttk.Label(vers_dialog, text="Choose DXVK GPLAsync version:").pack(pady=10)
 			vers_combo = ttk.Combobox(vers_dialog, textvariable=vers_var, values=options, state="readonly")
 			vers_combo.pack(pady=10)
 			ttk.Button(vers_dialog, text="OK", command=vers_dialog.destroy).pack(pady=10)
@@ -1222,23 +1200,23 @@ class ShortcutLauncher:
 				return
 			url = assets[selected]
 
-			# Verifică dacă există deja arhiva în home
+			# Check if archive already exists in home
 			home = os.path.expanduser("~")
 			download_path = os.path.join(home, os.path.basename(url))
 			if os.path.exists(download_path):
-				if not messagebox.askyesno("Există deja", "Arhiva există deja. Vrei să o descarci din nou?"):
-					pass  # Folosești arhiva deja descărcată
+				if not messagebox.askyesno("Already exists", "Archive already exists. Do you want to download it again?"):
+					pass  # Use already downloaded archive
 				else:
-					os.remove(download_path)  # Ștergi și descarci din nou
+					os.remove(download_path)  # Delete and download again
 
-			# Descarcă arhiva
+			# Download archive
 			try:
 				urllib.request.urlretrieve(url, download_path)
 			except Exception as e:
-				messagebox.showerror("Eroare", f"Eroare la download:\n{str(e)}")
+				messagebox.showerror("Error", f"Download error:\n{str(e)}")
 				return
 
-			# Extrage DLL-urile x64/x32
+			# Extract x64/x32 DLLs
 			system32 = os.path.join(prefix_path, "drive_c", "windows", "system32")
 			os.makedirs(system32, exist_ok=True)
 			try:
@@ -1250,16 +1228,16 @@ class ShortcutLauncher:
 						if member.name.endswith("x64/dxgi.dll"):
 							with open(os.path.join(system32, "dxgi.dll"), "wb") as out:
 								out.write(tar.extractfile(member).read())
-						# Dacă vrei și x32, adaptează după arhivă
-				messagebox.showinfo("Succes", f"DXVK GPLAsync {selected} instalat cu succes!")
+						# If you want x32 too, adapt after archive
+				messagebox.showinfo("Success", f"DXVK GPLAsync {selected} installed successfully!")
 			except Exception as e:
-				messagebox.showerror("Eroare", f"Eroare la extragere:\n{str(e)}")
+				messagebox.showerror("Error", f"Extraction error:\n{str(e)}")
 		finally:
 			if download_path and os.path.exists(download_path):
 				os.remove(download_path)
 
 	def _get_runners(self):
-		"""Detectează runnerii disponibili"""
+		"""Detect available runners"""
 		runners = []
 		for bin_name in ["wine", "proton-run.sh", "hangover-wine", "hangover-run.sh" "bash", "wine-stable", "proton-wine", "proton-box", "box64", "box86", "box32"]:
 			if shutil.which(bin_name):
@@ -1271,40 +1249,40 @@ class ShortcutLauncher:
 	# ===================================================================
 	
 	def show_available_templates(self):
-		"""Afișează template-urile disponibile pentru descărcare"""
+		"""Display available templates for download"""
 		try:
-			# Obține ultimul release
+			# Get latest release
 			releases = self._get_github_releases("moio9", "default")
 			if not releases:
-				messagebox.showinfo("Informație", "Nu s-au găsit release-uri.")
+				messagebox.showinfo("Information", "No releases found.")
 				return
 			
 			latest_release = releases[0]
 			assets = latest_release.get('assets', [])
 			
-			# Filtrează doar asset-urile care conțin "template" sau au extensii specifice
+			# Filter only assets containing "template" or with specific extensions
 			template_assets = [a for a in assets if 
 							 'template' in a['name'].lower() or 
 							 a['name'].endswith(('.sh', '.py', 'tmp'))]
 			
 			if not template_assets:
-				messagebox.showinfo("Informație", "Nu s-au găsit template-uri în acest release.")
+				messagebox.showinfo("Information", "No templates found in this release.")
 				return
 			
-			# Creează dialogul
+			# Create dialog
 			dialog = tk.Toplevel(self.root)
-			dialog.title("Template-uri Disponibile")
+			dialog.title("Available Templates")
 			dialog.geometry("600x400")
 			
-			# Frame principal
+			# Main frame
 			main_frame = ttk.Frame(dialog)
 			main_frame.pack(fill="both", expand=True, padx=10, pady=10)
 			
-			# Titlu
-			ttk.Label(main_frame, text="Selectează template-urile de descărcat:", 
+			# Title
+			ttk.Label(main_frame, text="Select templates to download:", 
 					 style="Section.TLabel").pack(anchor="w", pady=5)
 			
-			# Frame pentru lista cu scroll
+			# Frame for list with scroll
 			list_frame = ttk.Frame(main_frame)
 			list_frame.pack(fill="both", expand=True)
 			
@@ -1312,7 +1290,7 @@ class ShortcutLauncher:
 			scrollbar = ttk.Scrollbar(list_frame)
 			scrollbar.pack(side="right", fill="y")
 			
-			# Listbox pentru template-uri
+			# Listbox for templates
 			listbox = tk.Listbox(
 				list_frame, 
 				selectmode=tk.MULTIPLE,
@@ -1323,24 +1301,24 @@ class ShortcutLauncher:
 			listbox.pack(side="left", fill="both", expand=True)
 			scrollbar.config(command=listbox.yview)
 			
-			# Adaugă template-uri în listă
+			# Add templates to list
 			for asset in template_assets:
-				# Verifică dacă template-ul există deja local
+				# Check if template already exists locally
 				local_path = os.path.join(self.TEMPLATES_DIR, asset['name'])
 				exists = os.path.exists(local_path)
-				status = " (deja există)" if exists else ""
+				status = " (already exists)" if exists else ""
 				listbox.insert(tk.END, f"{asset['name']}{status}")
 			
-			# Buton de descărcare
+			# Download button
 			def download_selected():
 				selected_indices = listbox.curselection()
 				if not selected_indices:
-					messagebox.showwarning("Atenție", "Nu ai selectat niciun template!")
+					messagebox.showwarning("Attention", "No template selected!")
 					return
 				
 				overwrite = messagebox.askyesno(
-					"Suprascriere", 
-					"Dorești să suprascrii template-urile existente?",
+					"Overwrite", 
+					"Do you want to overwrite existing templates?",
 					parent=dialog
 				)
 				
@@ -1349,30 +1327,30 @@ class ShortcutLauncher:
 					self._download_template(asset, overwrite)
 				
 				dialog.destroy()
-				self.list_templates()  # Reîmprospătează lista
+				self.list_templates()  # Refresh list
 			
 			btn_frame = ttk.Frame(main_frame)
 			btn_frame.pack(pady=10)
 			
-			ttk.Button(btn_frame, text="Descarcă Selectate", 
+			ttk.Button(btn_frame, text="Download Selected", 
 					  command=download_selected).pack(side="left", padx=5)
-			ttk.Button(btn_frame, text="Închide", 
+			ttk.Button(btn_frame, text="Close", 
 					  command=dialog.destroy).pack(side="left", padx=5)
 			
 		except Exception as e:
-			messagebox.showerror("Eroare", f"Nu am putut obține template-urile:\n{str(e)}")
+			messagebox.showerror("Error", f"Could not get templates:\n{str(e)}")
 
 	def _download_template(self, asset, overwrite=False):
-		"""Descarcă un template individual"""
+		"""Download an individual template"""
 		try:
 			save_path = os.path.join(self.TEMPLATES_DIR, asset['name'])
 			
-			# Verifică dacă fișierul există deja
+			# Check if file already exists
 			if os.path.exists(save_path) and not overwrite:
-				messagebox.showinfo("Sărit", f"Template-ul {asset['name']} există deja și nu a fost suprascris.")
+				messagebox.showinfo("Skipped", f"Template {asset['name']} already exists and was not overwritten.")
 				return False
 			
-			# Descarcă asset-ul
+			# Download asset
 			response = requests.get(asset['browser_download_url'], stream=True)
 			response.raise_for_status()
 			
@@ -1380,18 +1358,18 @@ class ShortcutLauncher:
 				for chunk in response.iter_content(chunk_size=8192):
 					f.write(chunk)
 			
-			# Setează permisiuni de execuție pentru fișierele .sh
+			# Set execute permissions for .sh files
 			if asset['name'].endswith('.sh'):
 				os.chmod(save_path, 0o755)
 			
-			messagebox.showinfo("Succes", f"Template descărcat: {asset['name']}")
+			messagebox.showinfo("Success", f"Template downloaded: {asset['name']}")
 			return True
 		except Exception as e:
-			messagebox.showerror("Eroare", f"Eroare la descărcarea {asset['name']}:\n{str(e)}")
+			messagebox.showerror("Error", f"Error downloading {asset['name']}:\n{str(e)}")
 			return False
 
 	def _get_github_releases(self, owner, repo, tag=None):
-		"""Obține lista de release-uri de pe GitHub"""
+		"""Get list of releases from GitHub"""
 		if tag:
 			# Use specific tag URL
 			url = f"https://api.github.com/repos/{owner}/{repo}/releases/tags/{tag}"
@@ -1406,63 +1384,63 @@ class ShortcutLauncher:
 			return response.json()
 		except requests.exceptions.HTTPError as e:
 			if e.response.status_code == 404:
-				messagebox.showerror("Eroare", f"Nu s-a găsit release-ul pentru eticheta: {tag}")
+				messagebox.showerror("Error", f"Release not found for tag: {tag}")
 			else:
-				messagebox.showerror("Eroare", f"Eroare API GitHub: {str(e)}")
+				messagebox.showerror("Error", f"GitHub API error: {str(e)}")
 			return []
 		except Exception as e:
-			messagebox.showerror("Eroare", f"Eroare la conectare: {str(e)}")
+			messagebox.showerror("Error", f"Connection error: {str(e)}")
 			return []
 
 	def show_about(self):
-		"""Afișează dialogul 'Despre'"""
+		"""Display 'About' dialog"""
 		about_dialog = tk.Toplevel(self.root)
-		about_dialog.title("Despre Shortcut Launcher")
+		about_dialog.title("About Shortcut Launcher")
 		about_dialog.geometry("400x300")
 		
 		ttk.Label(about_dialog, text=f"Shortcut Launcher {__version__}", 
 				 font=("Arial", 14, "bold")).pack(pady=10)
 		
-		ttk.Label(about_dialog, text="Launcher pentru crearea și gestionarea\nshortcut-urilor și template-urilor", 
+		ttk.Label(about_dialog, text="Launcher for creating and managing\nshortcuts and templates", 
 				 justify="center").pack(pady=10)
 		
 		ttk.Label(about_dialog, text="Repository:", font=("Arial", 10)).pack(pady=5)
 		
-		# Buton pentru deschiderea repository-ului
+		# Button for opening repository
 		repo_frame = ttk.Frame(about_dialog)
 		repo_frame.pack(pady=5)
 		
 		def open_template_repo():
 			webbrowser.open(self.TEMPLATE_RELEASES)
 			
-		ttk.Button(repo_frame, text="Template-uri", 
+		ttk.Button(repo_frame, text="Templates", 
 				  command=open_template_repo).pack(side=tk.LEFT, padx=5)
 		
 		def open_app_repo():
 			webbrowser.open(self.APP_RELEASES)
 			
-		ttk.Button(repo_frame, text="Aplicație", 
+		ttk.Button(repo_frame, text="Application", 
 				  command=open_app_repo).pack(side=tk.LEFT, padx=5)
 		
-		# Buton de închidere
-		ttk.Button(about_dialog, text="Închide", 
+		# Close button
+		ttk.Button(about_dialog, text="Close", 
 				  command=about_dialog.destroy).pack(pady=15)
 
 	def check_app_update(self):
-		"""Verifică dacă există o versiune nouă a aplicației"""
+		"""Check for new application version"""
 		try:
-			# Obține ultimul release
+			# Get latest release
 			releases = self._get_github_releases("moio9", "default")
 			if not releases:
-				messagebox.showinfo("Actualizare", "Nu s-au găsit release-uri.")
+				messagebox.showinfo("Update", "No releases found.")
 				return
 			
 			latest_release = releases[0]
 			latest_version = latest_release['tag_name']
 			
-			# Compară versiunile
+			# Compare versions
 			if self._is_newer_version(latest_version, __version__):
-				# Găsește asset-ul principal (presupunem că e .py sau are numele repo-ului)
+				# Find main asset (assume it's .py or has repo name)
 				app_asset = None
 				for asset in latest_release.get('assets', []):
 					if 'shortcut' in asset['name'].lower() or asset['name'].endswith('.py', 'txt', 'ver', 'v', ''):
@@ -1470,10 +1448,10 @@ class ShortcutLauncher:
 						break
 				
 				if not app_asset:
-					messagebox.showerror("Eroare", "Nu s-a găsit fișierul aplicației în release!")
+					messagebox.showerror("Error", "Application file not found in release!")
 					return
 					
-					# Descarcă noua versiune
+					# Download new version
 					temp_dir = tempfile.mkdtemp()
 					download_path = os.path.join(temp_dir, app_asset['name'])
 					
@@ -1485,33 +1463,33 @@ class ShortcutLauncher:
 							for chunk in response.iter_content(chunk_size=8192):
 								f.write(chunk)
 						
-						# Deschide folderul cu fișierul descărcat
+						# Open folder with downloaded file
 						subprocess.Popen(['xdg-open', temp_dir])
 						messagebox.showinfo(
-							"Descărcare completă",
-							f"Noua versiune a fost descărcată în:\n{download_path}\n\n"
-							"Te rugăm să înlocuiești manual fișierul vechi cu cel nou.",
+							"Download complete",
+							f"New version downloaded to:\n{download_path}\n\n"
+							"Please manually replace the old file with the new one.",
 							parent=self.root
 						)
 					except Exception as e:
-						messagebox.showerror("Eroare", f"Eroare la descărcare: {str(e)}", parent=self.root)
+						messagebox.showerror("Error", f"Download error: {str(e)}", parent=self.root)
 			else:
-				messagebox.showinfo("Actualizare", "Ai cea mai recentă versiune a aplicației.", parent=self.root)
+				messagebox.showinfo("Update", "You have the latest version of the application.", parent=self.root)
 				
 		except Exception as e:
-			messagebox.showerror("Eroare", f"Nu am putut verifica actualizările: {str(e)}", parent=self.root)
+			messagebox.showerror("Error", f"Could not check for updates: {str(e)}", parent=self.root)
 
 	def _is_newer_version(self, new_version, current_version):
-		"""Compară două versiuni semantic"""
-		# Elimină caractere non-numerice
+		"""Compare two versions semantically"""
+		# Remove non-numeric characters
 		new_clean = re.sub(r'\D', '', new_version)
 		current_clean = re.sub(r'\D', '', current_version)
 		
 		try:
-			# Compară ca numere
+			# Compare as numbers
 			return int(new_clean) > int(current_clean)
 		except ValueError:
-			# Fallback la compararea lexicografică
+			# Fallback to lexicographical comparison
 			return new_version > current_version
 
 if __name__ == "__main__":
