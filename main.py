@@ -158,7 +158,7 @@ class ShortcutManager:
 
 	def _get_shortcuts(self):
 		items = []
-		apps_dir = os.path.join(os.getenv('XDG_DATA_HOME', os.path.join(self.home, '.local', 'share')), 'applications', 'games')
+		apps_dir = os.path.join(os.getenv('XDG_DATA_HOME', os.path.join(self.home, '.local', 'share')), 'applications', 'shortcuts')
 		os.makedirs(apps_dir, exist_ok=True)
 
 		for fname in sorted(os.listdir(apps_dir)):
@@ -1039,7 +1039,8 @@ class ShortcutManager:
 		]
 		apps_dir = os.path.join(
 			os.getenv("XDG_DATA_HOME", os.path.join(self.home, ".local", "share")),
-			"applications"
+			"applications",
+			"shortcuts"
 		)
 		os.makedirs(apps_dir, exist_ok=True)
 		desktop_path = os.path.join(apps_dir, f"{name}.desktop")
