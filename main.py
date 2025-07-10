@@ -296,7 +296,7 @@ class ShortcutLauncher:
 		canvas.pack(side="left", fill="both", expand=True)
 		scrollbar.pack(side="right", fill="y")
 
-		apps_dir = Path(os.getenv('XDG_DATA_HOME', Path.home()/'.local'/'share')) / 'applications' / 'games'
+		apps_dir = Path(os.getenv('XDG_DATA_HOME', Path.home()/'.local'/'share')) / 'applications' / 'shortcuts'
 		apps_dir.mkdir(parents=True, exist_ok=True)
 		shortcuts = []  # will contain (display_name, filename)
 
@@ -541,7 +541,7 @@ class ShortcutLauncher:
 	def delete_shortcut(self, filename):
 		# — 1) .desktop from Applications —
 		xdg = Path(os.getenv('XDG_DATA_HOME', Path.home()/'.local'/'share'))
-		apps_dir = xdg/'applications'
+		apps_dir = xdg/'applications' / 'shortcuts'
 		desktop_file = apps_dir/filename
 		if desktop_file.exists():
 			desktop_file.unlink()
@@ -639,7 +639,7 @@ class ShortcutLauncher:
 		Comment=Created with Shortcut Launcher
 		X-Shortcut-Manager=Shortcut Launcher
 		"""
-			apps_dir = Path(os.getenv('XDG_DATA_HOME', Path.home()/'.local'/'share')) / 'applications' / 'games'
+			apps_dir = Path(os.getenv('XDG_DATA_HOME', Path.home()/'.local'/'share')) / 'applications' / 'shortcuts'
 			apps_dir.mkdir(parents=True, exist_ok=True)
 			desktop_file = apps_dir / f"{name}.desktop"
 			with open(desktop_file, "w", encoding="utf-8") as f:
