@@ -309,8 +309,6 @@ class ShortcutLauncher:
 					lines = f.read().splitlines()
 			except:
 				continue
-			if not any(l.lstrip().startswith("X-Shortcut-Manager=Shortcut Launcher") for l in lines):
-				continue
 
 			# extract display name
 			display = next((l.lstrip().split("=",1)[1] for l in lines if l.lstrip().startswith("Name=")), None)
