@@ -172,9 +172,6 @@ class ShortcutManager:
 			except Exception:
 				continue
 
-			if not any(l.lstrip().startswith("X-Shortcut-Manager=Shortcut Launcher") for l in lines):
-				continue
-
 			# extract display name
 			display_name = next((l.lstrip().split("=",1)[1] for l in lines if l.lstrip().startswith("Name=")), None)
 			if not display_name:
