@@ -1,5 +1,13 @@
 # default
-test
+
+### Dependencies:
+
+```bash
+pip install termuxgui
+pip install requests
+pip install ttkthemes
+pkg install wltools
+```
 
 
 ## **Please help to keep this project alive:**
